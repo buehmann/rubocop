@@ -19,10 +19,12 @@ module RuboCop
           expr = node.respond_to?(:loc) ? node.loc.expression : node
           return if block_comment_within?(expr)
 
+          heredoc_ranges = heredoc_ranges(node)
+
           lambda do |corrector|
             each_line(expr) do |line_begin_pos|
               autocorrect_line(corrector, line_begin_pos, expr, column_delta,
-                               heredoc_ranges(node))
+                               heredoc_ranges)
             end
           end
         end
