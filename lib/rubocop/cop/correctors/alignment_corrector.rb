@@ -19,12 +19,12 @@ module RuboCop
           expr = node.respond_to?(:loc) ? node.loc.expression : node
           return if block_comment_within?(expr)
 
-          heredoc_ranges = heredoc_ranges(node)
+          taboo_ranges = inside_string_ranges(node)
 
           lambda do |corrector|
             each_line(expr) do |line_begin_pos|
               autocorrect_line(corrector, line_begin_pos, expr, column_delta,
-                               heredoc_ranges)
+                               taboo_ranges)
             end
           end
         end
@@ -41,10 +41,11 @@ module RuboCop
         private
 
         def autocorrect_line(corrector, line_begin_pos, expr, column_delta,
-                             heredoc_ranges)
+                             taboo_ranges)
           range = calculate_range(expr, line_begin_pos, column_delta)
-          # We must not change indentation of heredoc strings.
-          return if heredoc_ranges.any? { |h| within?(range, h) }
+          # We must not change indentation of heredoc strings or inside other
+          # string literals
+          return if taboo_ranges.any? { |t| within?(range, t) }
 
           if column_delta.positive?
             unless range.resize(1).source == "\n"
@@ -55,12 +56,27 @@ module RuboCop
           end
         end
 
-        def heredoc_ranges(node)
+        def inside_string_ranges(node)
           return [] unless node.is_a?(Parser::AST::Node)
 
-          node.each_node(:str, :dstr, :xstr)
-              .select(&:heredoc?)
-              .map { |n| n.loc.heredoc_body.join(n.loc.heredoc_end) }
+          node.each_node(:str, :dstr, :xstr).map { |n| inside_string_range(n) }
+              .compact
+        end
+
+        def inside_string_range(node)
+          if node.heredoc?
+            node.loc.heredoc_body.join(node.loc.heredoc_end)
+          else
+            inside_regular_string_range(node)
+          end
+        end
+
+        def inside_regular_string_range(node)
+          loc = node.location
+          return unless loc.respond_to?(:begin) && loc.respond_to?(:end)
+          return if loc.begin.nil? || loc.end.nil?
+
+          loc.begin.end.join(loc.end.begin)
         end
 
         def block_comment_within?(expr)
