@@ -30,12 +30,11 @@ module RuboCop
 
         expr = node.respond_to?(:loc) ? node.loc.expression : node
 
-        taboo_ranges = inside_string_ranges(node) +
-                       block_comment_ranges
+        taboo_ranges = taboo_ranges(node)
 
         lambda do |corrector|
           each_line(expr) do |line_begin_pos|
-            autocorrect_line(corrector, line_begin_pos, expr, column_delta,
+            autocorrect_line(corrector, line_begin_pos, column_delta,
                              taboo_ranges)
           end
         end
@@ -51,9 +50,9 @@ module RuboCop
 
       private
 
-      def autocorrect_line(corrector, line_begin_pos, expr, column_delta,
+      def autocorrect_line(corrector, line_begin_pos, column_delta,
                            taboo_ranges)
-        range = calculate_range(expr, line_begin_pos, column_delta)
+        range = calculate_range(line_begin_pos, column_delta)
         # We must not change indentation of heredoc strings or inside other
         # string literals
         return if taboo_ranges.any? { |t| within?(range, t) }
@@ -65,6 +64,10 @@ module RuboCop
         elsif range.source =~ /\A[ \t]+\z/
           remove(range, corrector)
         end
+      end
+
+      def taboo_ranges(node)
+        inside_string_ranges(node) + block_comment_ranges
       end
 
       def inside_string_ranges(node)
@@ -101,13 +104,13 @@ module RuboCop
         end
       end
 
-      def calculate_range(expr, line_begin_pos, column_delta)
+      def calculate_range(line_begin_pos, column_delta)
         if column_delta.positive?
           return range_between(line_begin_pos, line_begin_pos)
         end
 
         starts_with_space =
-          expr.source_buffer.source[line_begin_pos].start_with?(' ')
+          processed_source.buffer.source[line_begin_pos].start_with?(' ')
 
         if starts_with_space
           range_between(line_begin_pos, line_begin_pos + column_delta.abs)
