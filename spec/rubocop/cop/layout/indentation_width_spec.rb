@@ -248,27 +248,34 @@ RSpec.describe RuboCop::Cop::Layout::IndentationWidth do
           RUBY
         end
 
-        it 'does not correct in scopes that contain block comments' do
+        it 'does not indent block comments' do
           source = <<~RUBY
             module Foo
-            # The class has a block comment within, so it's not corrected.
             class Bar
             =begin
             This is a nice long
             comment
             which spans a few lines
+            and must not be indented
             =end
-            # The method has no block comment inside,
-            # but it's within a class that has a block
-            # comment, so it's not corrected either.
-            def baz
-            do_something
-            end
+              do_something # indented
             end
             end
           RUBY
 
-          expect(autocorrect_source(source)).to eq source
+          expect(autocorrect_source(source)).to eq <<~RUBY
+            module Foo
+              class Bar
+            =begin
+            This is a nice long
+            comment
+            which spans a few lines
+            and must not be indented
+            =end
+                do_something # indented
+              end
+            end
+          RUBY
         end
 
         it 'does not indent heredoc strings' do

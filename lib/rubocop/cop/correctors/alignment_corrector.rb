@@ -17,9 +17,9 @@ module RuboCop
 
           @processed_source = processed_source
           expr = node.respond_to?(:loc) ? node.loc.expression : node
-          return if block_comment_within?(expr)
 
-          taboo_ranges = inside_string_ranges(node)
+          taboo_ranges = inside_string_ranges(node) +
+                         block_comment_ranges
 
           lambda do |corrector|
             each_line(expr) do |line_begin_pos|
@@ -79,9 +79,14 @@ module RuboCop
           loc.begin.end.join(loc.end.begin)
         end
 
-        def block_comment_within?(expr)
-          processed_source.comments.select(&:document?).any? do |c|
-            within?(c.loc.expression, expr)
+        def block_comment_ranges
+          processed_source.comments.select(&:document?).map do |c|
+            range = c.loc.expression
+            if range.source.end_with?("\n")
+              range.adjust(end_pos: -1)
+            else
+              range
+            end
           end
         end
 

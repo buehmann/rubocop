@@ -115,5 +115,31 @@ RSpec.describe RuboCop::Cop::AlignmentCorrector do
         OUTPUT
       end
     end
+
+    context 'with block comments' do
+      it 'does not indent block comments' do
+        expect(autocorrect_source(<<~INPUT)).to eq(<<~OUTPUT)
+          # >> 2
+          begin
+            bar
+          =begin
+          Ancient
+          comment
+          =end
+            baz
+          end
+        INPUT
+          # >> 2
+            begin
+              bar
+          =begin
+          Ancient
+          comment
+          =end
+              baz
+            end
+        OUTPUT
+      end
+    end
   end
 end
