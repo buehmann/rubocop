@@ -33,9 +33,8 @@ module RuboCop
         taboo_ranges = taboo_ranges(node)
 
         lambda do |corrector|
-          each_line(expr) do |line_begin_pos|
-            autocorrect_line(corrector, line_begin_pos, column_delta,
-                             taboo_ranges)
+          each_line_range(expr) do |line_range|
+            autocorrect_line(corrector, line_range, column_delta, taboo_ranges)
           end
         end
       end
@@ -50,15 +49,14 @@ module RuboCop
 
       private
 
-      def autocorrect_line(corrector, line_begin_pos, column_delta,
-                           taboo_ranges)
-        range = calculate_range(line_begin_pos, column_delta)
+      def autocorrect_line(corrector, line_range, column_delta, taboo_ranges)
+        range = calculate_range(line_range, column_delta)
         # We must not change indentation of heredoc strings or inside other
         # string literals
         return if taboo_ranges.any? { |t| within?(range, t) }
 
         if column_delta.positive?
-          unless range.resize(1).source == "\n"
+          unless line_range.empty?
             corrector.insert_before(range, ' ' * column_delta)
           end
         elsif range.source =~ /\A[ \t]+\z/
@@ -104,18 +102,11 @@ module RuboCop
         end
       end
 
-      def calculate_range(line_begin_pos, column_delta)
+      def calculate_range(line_range, column_delta)
         if column_delta.positive?
-          return range_between(line_begin_pos, line_begin_pos)
-        end
-
-        starts_with_space =
-          processed_source.buffer.source[line_begin_pos].start_with?(' ')
-
-        if starts_with_space
-          range_between(line_begin_pos, line_begin_pos + column_delta.abs)
+          line_range.begin
         else
-          range_between(line_begin_pos - column_delta.abs, line_begin_pos)
+          line_range.resize(column_delta.abs)
         end
       end
 
@@ -130,12 +121,9 @@ module RuboCop
         $stderr = original_stderr
       end
 
-      def each_line(expr)
-        line_begin_pos = expr.begin_pos
-        expr.source.each_line do |line|
-          yield line_begin_pos
-          line_begin_pos += line.length
-        end
+      def each_line_range(expr)
+        lines = (expr.first_line)..(expr.last_line)
+        lines.each { |line| yield processed_source.buffer.line_range(line) }
       end
 
       def whitespace_range(node)
