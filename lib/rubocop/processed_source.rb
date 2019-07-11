@@ -97,6 +97,14 @@ module RuboCop
       tokens.find { |token| yield token }
     end
 
+    def preceding_token(source_range)
+      sorted_tokens.bsearch { |t| t.begin_pos >= source_range.end_pos }
+    end
+
+    def following_token(source_range)
+      sorted_tokens.bsearch { |t| t.begin_pos >= source_range.end_pos }
+    end
+
     def file_path
       buffer.name
     end
@@ -166,6 +174,10 @@ module RuboCop
       tokens = tokens.map { |t| Token.from_parser_token(t) } if tokens
 
       [ast, comments, tokens]
+    end
+
+    def sorted_tokens
+      @sorted_tokens ||= tokens.sort
     end
 
     # rubocop:disable Metrics/MethodLength

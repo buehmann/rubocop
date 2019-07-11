@@ -16,17 +16,11 @@ module RuboCop
         'EnforcedStyleForMultiline'
       end
 
-      def check(node, items, kind, begin_pos, end_pos)
-        after_last_item = range_between(begin_pos, end_pos)
+      def check(node, items, kind)
+        next_token = processed_source.following_token(items.last.source_range)
 
-        # If there is any heredoc in items, then match the comma succeeding
-        # any whitespace (except newlines), otherwise allow for newlines
-        comma_regex = any_heredoc?(items) ? /\A[^\S\n]*,/ : /\A\s*,/
-        comma_offset = after_last_item.source =~ comma_regex &&
-                       after_last_item.source.index(',')
-
-        if comma_offset && !inside_comment?(after_last_item, comma_offset)
-          check_comma(node, kind, after_last_item.begin_pos + comma_offset)
+        if next_token&.comma?
+          check_comma(node, kind, next_token.pos)
         elsif should_have_comma?(style, node)
           put_comma(node, items, kind)
         end
@@ -44,9 +38,7 @@ module RuboCop
         # checked as such.
         return unless brackets?(node)
 
-        check(node, node.children, kind,
-              node.children.last.source_range.end_pos,
-              node.loc.end.begin_pos)
+        check(node, node.children, kind)
       end
 
       def extra_avoid_comma_info
@@ -68,13 +60,6 @@ module RuboCop
           multiline?(node) && !method_name_and_arguments_on_same_line?(node)
         else
           false
-        end
-      end
-
-      def inside_comment?(range, comma_offset)
-        processed_source.comments.any? do |comment|
-          comment_offset = comment.loc.expression.begin_pos - range.begin_pos
-          comment_offset >= 0 && comment_offset < comma_offset
         end
       end
 
@@ -128,8 +113,7 @@ module RuboCop
         range1.last_line == range2.line
       end
 
-      def avoid_comma(kind, comma_begin_pos, extra_info)
-        range = range_between(comma_begin_pos, comma_begin_pos + 1)
+      def avoid_comma(kind, range, extra_info)
         article = kind =~ /array/ ? 'an' : 'a'
         msg = format(
           MSG,
@@ -166,49 +150,6 @@ module RuboCop
 
       # By default, there's no reason to avoid auto-correct.
       def avoid_autocorrect?(_nodes)
-        false
-      end
-
-      def any_heredoc?(items)
-        items.any? { |item| heredoc?(item) }
-      end
-
-      def heredoc?(node)
-        return false unless node.is_a?(RuboCop::AST::Node)
-        return true if node.loc.respond_to?(:heredoc_body)
-
-        return heredoc_send?(node) if node.send_type?
-
-        # handle hash values
-        #
-        #   some_method({
-        #     'auth' => <<-SOURCE
-        #       ...
-        #     SOURCE
-        #   })
-        if node.pair_type? || node.hash_type?
-          return heredoc?(node.children.last)
-        end
-
-        false
-      end
-
-      def heredoc_send?(node)
-        # handle heredocs with methods
-        #
-        #   some_method(<<-CODE.strip.chomp)
-        #     ...
-        #   CODE
-        return heredoc?(node.children.first) if node.children.size == 2
-        # handle nested methods
-        #
-        #   some_method(
-        #     another_method(<<-CODE.strip.chomp)
-        #       ...
-        #     CODE
-        #   )
-        return heredoc?(node.children.last) if node.children.size > 2
-
         false
       end
     end

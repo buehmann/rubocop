@@ -55,9 +55,7 @@ module RuboCop
         def on_send(node)
           return unless node.arguments? && node.parenthesized?
 
-          check(node, node.arguments, 'parameter of %<article>s method call',
-                node.last_argument.source_range.end_pos,
-                node.source_range.end_pos)
+          check(node, node.arguments, 'parameter of %<article>s method call')
         end
         alias on_csend on_send
 
