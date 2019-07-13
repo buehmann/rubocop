@@ -97,6 +97,10 @@ module RuboCop
       tokens.find { |token| yield token }
     end
 
+    def sorted_tokens
+      @sorted_tokens ||= tokens.sort
+    end
+
     def file_path
       buffer.name
     end

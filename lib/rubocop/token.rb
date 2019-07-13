@@ -3,6 +3,8 @@
 module RuboCop
   # A basic wrapper around Parser's tokens.
   class Token
+    include Comparable
+
     attr_reader :pos, :type, :text
 
     def self.from_parser_token(parser_token)
@@ -32,6 +34,12 @@ module RuboCop
 
     def end_pos
       @pos.end_pos
+    end
+
+    def <=>(other)
+      return unless other.is_a?(self.class)
+
+      pos <=> other.pos
     end
 
     def to_s
