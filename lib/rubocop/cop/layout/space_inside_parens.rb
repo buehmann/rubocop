@@ -43,11 +43,11 @@ module RuboCop
           @processed_source = processed_source
 
           if style == :space
-            each_missing_space(processed_source.tokens) do |range|
+            each_missing_space(processed_source.sorted_tokens) do |range|
               add_offense(range, location: range, message: MSG_SPACE)
             end
           else
-            each_extraneous_space(processed_source.tokens) do |range|
+            each_extraneous_space(processed_source.sorted_tokens) do |range|
               add_offense(range, location: range)
             end
           end
