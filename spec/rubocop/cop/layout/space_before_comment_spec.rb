@@ -7,6 +7,9 @@ RSpec.describe RuboCop::Cop::Layout::SpaceBeforeComment do
     expect_offense(<<~RUBY)
       a += 1# increment
             ^^^^^^^^^^^ Put a space before an end-of-line comment.
+      puts <<DOC# after heredoc
+                ^^^^^^^^^^^^^^^ Put a space before an end-of-line comment.
+      DOC
     RUBY
   end
 

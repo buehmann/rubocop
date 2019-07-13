@@ -16,7 +16,7 @@ module RuboCop
         MSG = 'Put a space before an end-of-line comment.'
 
         def investigate(processed_source)
-          processed_source.tokens.each_cons(2) do |token1, token2|
+          processed_source.sorted_tokens.each_cons(2) do |token1, token2|
             next unless token2.comment?
             next unless token1.line == token2.line
 
