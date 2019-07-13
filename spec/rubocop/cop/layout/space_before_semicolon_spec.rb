@@ -15,6 +15,14 @@ RSpec.describe RuboCop::Cop::Layout::SpaceBeforeSemicolon do
     RUBY
   end
 
+  it 'registers an offense for space before semicolon after heredoc' do
+    expect_offense(<<~RUBY)
+      str = <<DOC ; y = 2
+                 ^ Space found before semicolon.
+      DOC
+    RUBY
+  end
+
   it 'does not register an offense for no space before semicolons' do
     expect_no_offenses('x = 1; y = 2')
   end

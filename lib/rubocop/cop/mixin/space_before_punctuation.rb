@@ -10,7 +10,8 @@ module RuboCop
       MSG = 'Space found before %<token>s.'
 
       def investigate(processed_source)
-        each_missing_space(processed_source.tokens) do |token, pos_before|
+        tokens = processed_source.sorted_tokens
+        each_missing_space(tokens) do |token, pos_before|
           add_offense(pos_before, location: pos_before,
                                   message: format(MSG, token: kind(token)))
         end
