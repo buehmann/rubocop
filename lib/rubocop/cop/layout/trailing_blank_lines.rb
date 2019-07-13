@@ -87,7 +87,7 @@ module RuboCop
           return true if buffer.source.strip.start_with?('__END__')
           return false if processed_source.tokens.empty?
 
-          extra = buffer.source[processed_source.tokens.last.end_pos..-1]
+          extra = buffer.source[processed_source.sorted_tokens.last.end_pos..-1]
           extra&.strip&.start_with?('__END__')
         end
 
