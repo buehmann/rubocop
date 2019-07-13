@@ -84,6 +84,14 @@ RSpec.describe RuboCop::Cop::Layout::ExtraSpacing, :config do
       RUBY
     end
 
+    it 'can handle extra space after a heredoc' do
+      expect_offense(<<~RUBY)
+        <<DOC  if allowed?
+             ^ Unnecessary spacing detected.
+        DOC
+      RUBY
+    end
+
     it 'gives the correct line' do
       expect_offense(<<~RUBY)
         class A   < String

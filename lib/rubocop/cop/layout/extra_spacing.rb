@@ -43,7 +43,7 @@ module RuboCop
 
           @corrected = Set.new if force_equal_sign_alignment?
 
-          processed_source.tokens.each_cons(2) do |token1, token2|
+          processed_source.sorted_tokens.each_cons(2) do |token1, token2|
             check_tokens(processed_source.ast, token1, token2)
           end
         end
