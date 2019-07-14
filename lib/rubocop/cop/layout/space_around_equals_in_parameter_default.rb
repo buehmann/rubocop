@@ -36,7 +36,7 @@ module RuboCop
 
         def on_optarg(node)
           index = index_of_first_token(node)
-          arg, equals, value = processed_source.tokens[index, 3]
+          arg, equals, value = processed_source.sorted_tokens[index, 3]
           check_optarg(arg, equals, value)
         end
 

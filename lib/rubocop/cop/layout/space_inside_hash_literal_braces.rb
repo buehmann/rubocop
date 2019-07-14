@@ -71,7 +71,7 @@ module RuboCop
         MSG = 'Space inside %<problem>s.'
 
         def on_hash(node)
-          tokens = processed_source.tokens
+          tokens = processed_source.sorted_tokens
 
           hash_literal_with_braces(node) do |begin_index, end_index|
             check(tokens[begin_index], tokens[begin_index + 1])
@@ -101,7 +101,7 @@ module RuboCop
         private
 
         def hash_literal_with_braces(node)
-          tokens = processed_source.tokens
+          tokens = processed_source.sorted_tokens
           begin_index = index_of_first_token(node)
           return unless tokens[begin_index].left_brace?
 

@@ -47,7 +47,7 @@ module RuboCop
       def token_table
         @token_table ||= begin
           table = {}
-          @processed_source.tokens.each_with_index do |t, ix|
+          @processed_source.sorted_tokens.each_with_index do |t, ix|
             table[t.line] ||= {}
             table[t.line][t.column] = ix
           end
@@ -121,8 +121,8 @@ module RuboCop
       end
 
       def empty_brackets?(left_bracket_token, right_bracket_token)
-        left_index = processed_source.tokens.index(left_bracket_token)
-        right_index = processed_source.tokens.index(right_bracket_token)
+        left_index = processed_source.sorted_tokens.index(left_bracket_token)
+        right_index = processed_source.sorted_tokens.index(right_bracket_token)
         right_index && left_index == right_index - 1
       end
 
