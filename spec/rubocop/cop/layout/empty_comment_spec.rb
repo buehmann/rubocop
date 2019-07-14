@@ -145,6 +145,18 @@ RSpec.describe RuboCop::Cop::Layout::EmptyComment, :config do
     RUBY
   end
 
+  it 'autocorrects an empty comment next to heredoc' do
+    new_source = autocorrect_source(<<~RUBY)
+      puts <<DOC #
+      DOC
+    RUBY
+
+    expect(new_source).to eq(<<~RUBY)
+      puts <<DOC
+      DOC
+    RUBY
+  end
+
   it 'autocorrects an empty comment without space next to code' do
     new_source = autocorrect_source(<<~RUBY)
       def foo#

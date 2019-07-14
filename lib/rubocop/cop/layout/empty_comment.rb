@@ -151,8 +151,8 @@ module RuboCop
 
         def previous_token(node)
           current_token = current_token(node)
-          index = processed_source.tokens.index(current_token)
-          index.zero? ? nil : processed_source.tokens[index - 1]
+          index = processed_source.sorted_tokens.index(current_token)
+          index.zero? ? nil : processed_source.sorted_tokens[index - 1]
         end
       end
     end
