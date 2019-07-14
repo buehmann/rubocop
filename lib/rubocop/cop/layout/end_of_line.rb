@@ -45,7 +45,7 @@ module RuboCop
         MSG_MISSING = 'Carriage return character missing.'
 
         def investigate(processed_source)
-          last_token = processed_source.tokens.last
+          last_token = processed_source.sorted_tokens.last
           last_line =
             last_token ? last_token.line : processed_source.lines.length
 
