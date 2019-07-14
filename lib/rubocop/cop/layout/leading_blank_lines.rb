@@ -34,8 +34,7 @@ module RuboCop
           token = processed_source.tokens[0]
           return unless token && token.line > 1
 
-          add_offense(processed_source.tokens[0],
-                      location: processed_source.tokens[0].pos)
+          add_offense(token, location: token.pos)
         end
 
         def autocorrect(node)
