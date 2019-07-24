@@ -3,31 +3,6 @@
 RSpec.describe RuboCop::TargetFinder, :isolated_environment do
   include FileHelper
 
-  RUBY_EXTENSIONS = %w[.rb
-                       .arb
-                       .axlsx
-                       .builder
-                       .fcgi
-                       .gemfile
-                       .gemspec
-                       .god
-                       .jb
-                       .jbuilder
-                       .mspec
-                       .opal
-                       .pluginspec
-                       .podspec
-                       .rabl
-                       .rake
-                       .rbuild
-                       .rbw
-                       .rbx
-                       .ru
-                       .ruby
-                       .spec
-                       .thor
-                       .watchr].freeze
-
   RUBY_INTERPRETERS = %w[ruby
                          macruby
                          rake
@@ -133,48 +108,8 @@ RSpec.describe RuboCop::TargetFinder, :isolated_environment do
     context 'when a non-ruby file is passed' do
       let(:args) { ['dir2/file'] }
 
-      it "doesn't pick the file" do
-        expect(found_basenames.empty?).to be(true)
-      end
-    end
-
-    context 'when files with a ruby extension are passed' do
-      let(:args) { RUBY_EXTENSIONS.map { |ext| "dir2/file#{ext}" } }
-
-      it 'picks all the ruby files' do
-        expect(found_basenames)
-          .to eq(RUBY_EXTENSIONS.map { |ext| "file#{ext}" })
-      end
-
-      context 'when local AllCops/Include lists two patterns' do
-        before do
-          create_file('.rubocop.yml', <<-YAML)
-            AllCops:
-              Include:
-                - '**/*.rb'
-                - '**/*.arb'
-          YAML
-        end
-
-        it 'picks two files' do
-          expect(found_basenames).to eq(%w[file.rb file.arb])
-        end
-
-        context 'when a subdirectory AllCops/Include only lists one pattern' do
-          before do
-            create_file('dir2/.rubocop.yml', <<-YAML)
-              AllCops:
-                Include:
-                  - '**/*.ruby'
-            YAML
-          end
-
-          # Include and Exclude patterns are take from the top directory and
-          # settings in subdirectories are silently ignored.
-          it 'picks two files' do
-            expect(found_basenames).to eq(%w[file.rb file.arb])
-          end
-        end
+      it 'picks the file' do
+        expect(found_basenames).to eq(['file'])
       end
     end
 

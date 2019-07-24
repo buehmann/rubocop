@@ -170,21 +170,32 @@ module RuboCop
       @config_store.for('.').file_to_include?(file)
     end
 
+    def configured_exclude?(file)
+      @config_store.for(file).file_to_exclude?(file)
+    end
+
     def included_file?(file)
       ruby_file?(file) || configured_include?(file)
     end
 
     def process_explicit_path(path)
-      files = path.include?('*') ? Dir[path] : [path]
+      path.include?('*') ? process_glob(path) : process_explicit_file(path)
+    end
 
-      files.select! { |file| included_file?(file) }
+    def process_glob(path)
+      files = Dir[path].select { |file| included_file?(file) }
 
+      force_exclude_files(files)
+    end
+
+    def force_exclude_files(files)
       return files unless force_exclusion?
 
-      files.reject do |file|
-        config = @config_store.for(file)
-        config.file_to_exclude?(file)
-      end
+      files.reject { |file| configured_exclude?(file) }
+    end
+
+    def process_explicit_file(path)
+      force_exclude_files([path])
     end
   end
 end
