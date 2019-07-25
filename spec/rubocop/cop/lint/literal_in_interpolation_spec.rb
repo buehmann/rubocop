@@ -85,12 +85,14 @@ RSpec.describe RuboCop::Cop::Lint::LiteralInInterpolation do
   it_behaves_like('literal interpolation', '0xaabb', '43707')
   it_behaves_like('literal interpolation', '0o377', '255')
   it_behaves_like('literal interpolation', 2.0)
+  it_behaves_like('literal interpolation', '3r', '3/1')
+  it_behaves_like('literal interpolation', '3i', '0+3i')
   it_behaves_like('literal interpolation', '[]', '[]')
   it_behaves_like('literal interpolation', '["a", "b"]', '[\"a\", \"b\"]')
-  it_behaves_like('literal interpolation', '{"a" => "b"}', '{\"a\" => \"b\"}')
+  it_behaves_like('literal interpolation', '{"a" => "b"}', '{\"a\"=>\"b\"}')
   it_behaves_like('literal interpolation', true)
   it_behaves_like('literal interpolation', false)
-  it_behaves_like('literal interpolation', 'nil')
+  it_behaves_like('literal interpolation', 'nil', '')
   it_behaves_like('literal interpolation', ':symbol', 'symbol')
   it_behaves_like('literal interpolation', ':"symbol"', 'symbol')
   it_behaves_like('literal interpolation', 1..2)
@@ -98,10 +100,10 @@ RSpec.describe RuboCop::Cop::Lint::LiteralInInterpolation do
   it_behaves_like('literal interpolation', '%w[]', '[]')
   it_behaves_like('literal interpolation', '%w[v1]', '[\"v1\"]')
   it_behaves_like('literal interpolation', '%w[v1 v2]', '[\"v1\", \"v2\"]')
-  it_behaves_like('literal interpolation', '%i[s1 s2]', '[\"s1\", \"s2\"]')
-  it_behaves_like('literal interpolation', '%I[s1 s2]', '[\"s1\", \"s2\"]')
-  it_behaves_like('literal interpolation', '%i[s1     s2]', '[\"s1\", \"s2\"]')
-  it_behaves_like('literal interpolation', '%i[ s1   s2 ]', '[\"s1\", \"s2\"]')
+  it_behaves_like('literal interpolation', '%i[s1 s2]', '[:s1, :s2]')
+  it_behaves_like('literal interpolation', '%I[s1 s2]', '[:s1, :s2]')
+  it_behaves_like('literal interpolation', '%i[s1     s2]', '[:s1, :s2]')
+  it_behaves_like('literal interpolation', '%i[ s1   s2 ]', '[:s1, :s2]')
 
   it 'handles nested interpolations when auto-correction' do
     corrected = autocorrect_source(%("this is \#{"\#{1}"} silly"))
@@ -180,18 +182,18 @@ RSpec.describe RuboCop::Cop::Lint::LiteralInInterpolation do
     RUBY
   end
 
-  it 'handles backslach in double quotes when auto-correction' do
+  it 'handles backslash in double quotes when auto-correction' do
     corrected = autocorrect_source(<<~'RUBY')
       "this is #{"\n"} silly"
       "this is #{%(\n)} silly"
       "this is #{%Q(\n)} silly"
     RUBY
     expect(corrected).to eq(<<~'RUBY')
-      "this is 
+      "this is
        silly"
-      "this is 
+      "this is
        silly"
-      "this is 
+      "this is
        silly"
     RUBY
   end

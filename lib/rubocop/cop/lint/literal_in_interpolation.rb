@@ -49,41 +49,44 @@ module RuboCop
         end
 
         def autocorrected_value(node)
+          escape(value(node).to_s)
+        end
+
+        def escape(string)
+          string.gsub('\\') { '\\\\' }.gsub('"', '\"')
+        end
+
+        # This range is used instead of Ruby's builtin one because the latter
+        # varies across target versions (support for beginless and endless
+        # ranges).
+        class Range
+          def initialize(from, to, inclusive: true)
+            @from = from
+            @to = to
+            @inclusive = inclusive
+          end
+
+          def to_s
+            dots = @inclusive ? '..' : '...'
+            "#{@from}#{dots}#{@to}"
+          end
+        end
+
+        def value(node)
           case node.type
-          when :int
-            node.children.last.to_i.to_s
-          when :float
-            node.children.last.to_f.to_s
-          when :str
-            autocorrected_value_for_string(node)
-          when :sym
-            autocorrected_value_for_symbol(node)
-          when :array
-            autocorrected_value_for_array(node)
+          when :array, :pair
+            child_values(node)
+          when :hash
+            Hash[child_values(node)]
+          when :irange, :erange
+            Range.new(*child_values(node), inclusive: node.irange_type?)
           else
-            node.source.gsub('"', '\"')
+            node.value
           end
         end
 
-        def autocorrected_value_for_string(node)
-          if node.source.start_with?("'", '%q')
-            node.children.last.inspect[1..-2]
-          else
-            node.children.last
-          end
-        end
-
-        def autocorrected_value_for_symbol(node)
-          end_pos =
-            node.loc.end ? node.loc.end.begin_pos : node.loc.expression.end_pos
-
-          range_between(node.loc.begin.end_pos, end_pos).source
-        end
-
-        def autocorrected_value_for_array(node)
-          return node.source.gsub('"', '\"') unless node.percent_literal?
-
-          contents_range(node).source.split(' ').to_s.gsub('"', '\"')
+        def child_values(node)
+          node.children.map { |c| value(c) }
         end
 
         # Does node print its own source when converted to a string?

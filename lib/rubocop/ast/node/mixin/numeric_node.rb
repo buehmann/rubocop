@@ -4,6 +4,8 @@ module RuboCop
   module AST
     # Common functionality for primitive numeric nodes: `int`, `float`, ...
     module NumericNode
+      include BasicLiteralNode
+
       SIGN_REGEX = /\A[+-]/.freeze
 
       # Checks whether this is literal has a sign.
