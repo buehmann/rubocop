@@ -31,8 +31,13 @@ RSpec.describe RuboCop::Cop::Lint::LiteralInInterpolation do
     end
 
     it "removes interpolation around #{literal}" do
-      corrected = autocorrect_source(%("this is the \#{#{literal}}"))
+      source = %("this is the \#{#{literal}}")
+      corrected = autocorrect_source(source)
       expect(corrected).to eq(%("this is the #{expected}"))
+
+      # rubocop:disable Security/Eval
+      expect(eval(corrected)).to eq(eval(source))
+      # rubocop:enable Security/Eval
     end
 
     it "removes interpolation around #{literal} when there is more text" do
