@@ -135,14 +135,26 @@ module RuboCop
       end
 
       def collate_corrections(corrector, cops)
+        with_corrections = cops.reject { |c| c.corrections.empty? }
+        compatible_cops(with_corrections) do |cop|
+          corrector.corrections.concat(cop.corrections)
+        end
+      end
+
+      def compatible_cops(cops)
         skips = Set.new
+        accepted = Set.new
 
         cops.each do |cop|
-          next if cop.corrections.empty?
           next if skips.include?(cop.class)
 
-          corrector.corrections.concat(cop.corrections)
-          skips.merge(cop.class.autocorrect_incompatible_with)
+          incompatible = cop.class.autocorrect_incompatible_with.to_set
+          next if accepted.intersect?(incompatible)
+
+          skips.merge(incompatible)
+
+          accepted.add(cop.class)
+          yield cop
         end
       end
 
