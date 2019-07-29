@@ -40,6 +40,10 @@ module RuboCop
           ->(corrector) { corrector.replace(node.parent.source_range, value) }
         end
 
+        def self.autocorrect_incompatible_with
+          [Style::PercentLiteralDelimiters]
+        end
+
         private
 
         def special_keyword?(node)
@@ -49,11 +53,37 @@ module RuboCop
         end
 
         def autocorrected_value(node)
-          escape(value(node).to_s)
+          escape(value(node).to_s, context: node.parent)
         end
 
-        def escape(string)
-          string.gsub('\\') { '\\\\' }.gsub('"', '\"')
+        def escape(string, context:)
+          string.gsub(/(?=#{special_characters(context)})/) { '\\' }
+        end
+
+        def special_characters(node)
+          string_container =
+            node.each_ancestor.take_while { |n| [:str, :dstr, :xstr, :dsym, :regexp, :array].include?(n.type) }
+                .find { |an| an.loc.respond_to?(:begin) && an.loc.begin }
+          begin_delimiter = string_container.loc.begin.source
+          end_delimiter = string_container.loc.end.source
+
+          array = string_container.array_type?
+          case begin_delimiter
+          when %r{^(%[WIQsrx\W]|["`/]|:")}
+            allows_interpolation = true
+          when /^(%[wiq]|')/
+            allows_interpolation = false
+          else
+            raise NotImplementedError
+          end
+          begin_char = begin_delimiter[-1]
+          end_char = end_delimiter[0]
+
+          special = [begin_char, end_char].uniq << '\\'
+          special << '#' if allows_interpolation
+          special = special.map { |c| Regexp.escape(c) }
+          special << '[\S\n]' if array
+          /(?:#{special.join("|")})/
         end
 
         # This range is used instead of Ruby's builtin one because the latter
