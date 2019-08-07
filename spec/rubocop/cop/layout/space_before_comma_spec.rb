@@ -24,6 +24,14 @@ RSpec.describe RuboCop::Cop::Layout::SpaceBeforeComma do
     RUBY
   end
 
+  it 'registers an offense for space before comma after heredoc' do
+    expect_offense(<<~RUBY)
+      a(<<DOC , 2)
+             ^ Space found before comma.
+      DOC
+    RUBY
+  end
+
   it 'does not register an offense for no spaces before comma' do
     expect_no_offenses('a(1, 2)')
   end

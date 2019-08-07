@@ -51,11 +51,17 @@ RSpec.describe RuboCop::Cop::Layout::SpaceInsideHashLiteralBraces, :config do
       h = {a => 1}
           ^ Space inside { missing.
                  ^ Space inside } missing.
+      h = {a: <<DOC}
+          ^ Space inside { missing.
+                   ^ Space inside } missing.
+      DOC
     RUBY
 
     expect_correction(<<~RUBY)
       h = { a: 1, b: 2 }
       h = { a => 1 }
+      h = { a: <<DOC }
+      DOC
     RUBY
   end
 

@@ -134,6 +134,15 @@ RSpec.describe RuboCop::Cop::Layout::EndOfLine, :config do
       RUBY
     end
 
+    it 'is not fooled by final heredocs' do
+      inspect_source(<<~RUBY)
+        <<DOC
+        doc\r
+        DOC
+      RUBY
+      expect(cop.messages).to eq(['Carriage return character detected.'])
+    end
+
     context 'and there are many lines ending with CR+LF' do
       it 'registers only one offense' do
         inspect_source_file(['x=0', '', 'y=1'].join("\r\n"))

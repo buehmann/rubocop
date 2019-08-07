@@ -132,6 +132,18 @@ RSpec.describe RuboCop::ProcessedSource do
       first_line = processed_source.lines.first
       expect(first_line).to eq('# an awesome method')
     end
+
+    context 'with __END__ in final heredoc' do
+      let(:source) { <<~RUBY }
+        a(<<DOC, 2)
+        __END__
+        DOC
+      RUBY
+
+      it 'does not stop early' do
+        expect(processed_source.lines.size).to eq(4)
+      end
+    end
   end
 
   describe '#[]' do

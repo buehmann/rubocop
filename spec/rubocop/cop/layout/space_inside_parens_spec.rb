@@ -12,11 +12,16 @@ RSpec.describe RuboCop::Cop::Layout::SpaceInsideParens, :config do
           ^ Space inside parentheses detected.
         g = (a + 3 )
                   ^ Space inside parentheses detected.
+        h(<<DOC )
+               ^ Space inside parentheses detected.
+        DOC
       RUBY
 
       expect_correction(<<~RUBY)
         f(3)
         g = (a + 3)
+        h(<<DOC)
+        DOC
       RUBY
     end
 

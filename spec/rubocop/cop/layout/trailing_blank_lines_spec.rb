@@ -31,6 +31,17 @@ RSpec.describe RuboCop::Cop::Layout::TrailingBlankLines, :config do
       RUBY
     end
 
+    it 'is not fooled by __END__ in heredocs' do
+      inspect_source(<<~RUBY)
+        a(<<DOC, 2)
+        __END__
+        DOC
+
+      RUBY
+      expect(cop.offenses.size).to eq(1)
+      expect(cop.messages).to eq(['1 trailing blank lines detected.'])
+    end
+
     it 'registers an offense for multiple trailing blank lines' do
       inspect_source(<<~RUBY)
         x = 0
