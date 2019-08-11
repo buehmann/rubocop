@@ -273,6 +273,7 @@ require_relative 'rubocop/cop/layout/tab'
 require_relative 'rubocop/cop/layout/trailing_blank_lines'
 require_relative 'rubocop/cop/layout/trailing_whitespace'
 
+require_relative 'rubocop/cop/lint/adjacent_string_literals'
 require_relative 'rubocop/cop/lint/ambiguous_block_association'
 require_relative 'rubocop/cop/lint/ambiguous_operator'
 require_relative 'rubocop/cop/lint/ambiguous_regexp_literal'
