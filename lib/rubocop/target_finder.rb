@@ -6,6 +6,8 @@ module RuboCop
   # This class finds target files to inspect by scanning the directory tree
   # and picking ruby files.
   class TargetFinder
+    PathArgumentError = Class.new(RuboCop::Error)
+
     def initialize(config_store, options = {})
       @config_store = config_store
       @options = options
@@ -175,7 +177,13 @@ module RuboCop
     end
 
     def process_explicit_path(path)
-      files = path.include?('*') ? Dir[path] : [path]
+      if path.include?('*')
+        files = Dir[path]
+      elsif File.exist?(path)
+        files = [path]
+      else
+        raise PathArgumentError, "File not found: #{path}"
+      end
 
       files.select! { |file| included_file?(file) }
 
