@@ -168,7 +168,8 @@ module RuboCop
           return if semicolon_separated_parts.length <= 1
 
           column = semicolon_separated_parts.first.length + 1
-          range = source_range(processed_source.buffer, line_index, column, 1)
+          range = source_range(processed_source.buffer, line_index + 1,
+                               column, 1)
           return if processed_source.commented?(range)
 
           range
